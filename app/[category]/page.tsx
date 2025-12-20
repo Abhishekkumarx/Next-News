@@ -1,4 +1,5 @@
 import Image from "next/image"
+import HeroSlider from "../components/HeroSlider"
 
 type Article = {
   title: string
@@ -78,38 +79,9 @@ export default async function CategoryPage({
 
       </div>
 
-      {/* 🔥 HERO SECTION */}
-      {featuredArticle && (
-        <div className="mt-6 relative overflow-hidden rounded-2xl shadow-lg">
-          {featuredArticle.urlToImage && (
-            <Image
-              src={featuredArticle.urlToImage}
-              alt={featuredArticle.title}
-              width={1200}
-              height={500}
-              className="w-full h-[420px] object-cover"
-            />
-          )}
 
-    {/* Overlay */}
-    <div className="absolute inset-0 bg-black/50" />
+      <HeroSlider articles={articles.slice(0, 5)} />
 
-    {/* Text */}
-    <div className="absolute bottom-6 left-6 right-6 text-white">
-      <h2 className="text-3xl md:text-4xl font-bold leading-tight max-w-3xl">
-        {featuredArticle.title}
-      </h2>
-
-      <p className="mt-3 text-sm text-gray-200 max-w-2xl line-clamp-3">
-        {featuredArticle.description}
-      </p>
-
-      <p className="mt-2 text-xs text-gray-300">
-        {featuredArticle.source?.name}
-      </p>
-      </div>
-      </div>
-    )}
 
       <div className="grid gap-10 mt-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ">
         {remainingArticles.map((article, index) => (
