@@ -33,7 +33,6 @@ async function getNews(
   return data.articles
 }
 
-/* 🔥 BOTH params AND searchParams ARE ASYNC */
 type CategoryPageProps = {
   params: Promise<{
     category: string
@@ -50,7 +49,6 @@ export default async function CategoryPage({
   const { category } = await params
   const resolvedSearchParams = await searchParams
 
-  // ✅ NOW THIS WORKS
   const rawPage = Number(resolvedSearchParams.page) || 1
 
   const currentPage = Math.min(
@@ -85,13 +83,17 @@ export default async function CategoryPage({
 
       <div className="grid gap-10 mt-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ">
         {remainingArticles.map((article, index) => (
+        <a
+          key={index}
+          href={article.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block"
+        >
           <div
-            key={index}
-          className="cursor-pointer overflow-hidden rounded-lg bg-white
-           shadow-md transition-all duration-300
-           hover:scale-[1.08] hover:shadow-lg"
-
-
+            className="cursor-pointer overflow-hidden rounded-lg bg-white
+                      shadow-md transition-all duration-300
+                      hover:scale-[1.08] hover:shadow-lg"
           >
             {/* IMAGE */}
             {article.urlToImage && (
@@ -107,7 +109,7 @@ export default async function CategoryPage({
 
             {/* TEXT */}
             <div className="p-4 h-[160px] flex flex-col">
-              <h3 className="font-semibold text-base leading-snug line-clamp-2">
+              <h3 className="font-semibold text-base line-clamp-2">
                 {article.title}
               </h3>
 
@@ -115,18 +117,20 @@ export default async function CategoryPage({
                 {article.description}
               </p>
 
-              <div className="mt-auto text-xs text-gray-400">
+              <span className="mt-auto text-xs text-gray-400">
                 {article.source?.name}
-              </div>
+              </span>
             </div>
           </div>
+        </a>
+
+
           
         ))}
       </div>
 
 
 
-      {/* ✅ PAGINATION (NOW WORKS) */}
       <div className="flex justify-center gap-2 mt-12">
         <a
           href={`/${category}?page=${prevPage}`}

@@ -13,6 +13,7 @@ export default function Navbar() {
         <Link href="/sports">Sports</Link>
         <Link href="/technology">Technology</Link>
         <Link href="/health">Health</Link>
+        <Link href="/entertainment">Entertainment</Link>
 
       </div>
     </nav>
