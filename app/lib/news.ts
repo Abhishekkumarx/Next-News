@@ -1,19 +1,30 @@
+import { Article } from "./types"
+
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+
 export async function getNewsByCategory(
   category: string,
   page = 1,
   pageSize = 12
 ): Promise<Article[]> {
-  const apiKey = process.env.NEWS_API_KEY
+  try {
+    const res = await fetch(
+      `${BASE_URL}/api/news?category=${category}&page=${page}&pageSize=${pageSize}`
+    )
 
-  const res = await fetch(
-    `https://newsapi.org/v2/top-headlines?category=${category}&country=us&page=${page}&pageSize=${pageSize}&apiKey=${apiKey}`,
-    { cache: "no-store" }
-  )
+    if (!res.ok) {
+      console.error(
+        `News fetch failed for ${category}:`,
+        res.status
+      )
+      return [] 
+    }
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch news")
+    const data = await res.json()
+    return data.articles ?? []
+  } catch (error) {
+    console.error("News fetch error:", error)
+    return []
   }
-
-  const data = await res.json()
-  return data.articles
 }
