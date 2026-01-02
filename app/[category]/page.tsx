@@ -2,39 +2,7 @@ import Image from "next/image"
 import HeroSlider from "../components/HeroSlider"
 import { getNewsByCategory } from "../lib/news"
 
-type Article = {
-  title: string
-  description: string
-  url: string
-  urlToImage?: string | null
-  source?: {
-    name?: string
-  }
-}
-
-const PAGE_SIZE = 12
 const TOTAL_PAGES = 5
-
-async function getNews(
-  category: string,
-  page: number
-): Promise<Article[]> {
-  //const apiKey = process.env.NEWS_API_KEY
-
-  // const res = await fetch(
-  //   `https://newsapi.org/v2/top-headlines?category=${category}&country=us&pageSize=${PAGE_SIZE}&page=${page}&apiKey=${apiKey}`,
-  //   { cache: "no-store" }
-  // )
-
-  // if (!res.ok) {
-  //   throw new Error("Failed to fetch news")
-  // }
-
-  // const data = await res.json()
-  //return data.articles
-  const articles = await getNewsByCategory(category)
-  return articles
-}
 
 type CategoryPageProps = {
   params: Promise<{
@@ -49,95 +17,83 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: CategoryPageProps) {
+  // Next.js 15+
   const { category } = await params
   const resolvedSearchParams = await searchParams
 
   const rawPage = Number(resolvedSearchParams.page) || 1
+  const currentPage = Math.min(Math.max(rawPage, 1), TOTAL_PAGES)
 
-  const currentPage = Math.min(
-    Math.max(rawPage, 1),
-    TOTAL_PAGES
-  )
+  const articles = await getNewsByCategory(category, currentPage, 12)
 
-  const prevPage =
-    currentPage > 1 ? currentPage - 1 : 1
+  const heroArticles = articles.slice(0, 5)
+  const remainingArticles = articles.slice(5)
+
+  const prevPage = currentPage > 1 ? currentPage - 1 : 1
   const nextPage =
-    currentPage < TOTAL_PAGES
-      ? currentPage + 1
-      : TOTAL_PAGES
-
-  const articles = await getNews(category, currentPage)
-
-  const featuredArticle = articles[0]
-  const remainingArticles = articles.slice(1)
+    currentPage < TOTAL_PAGES ? currentPage + 1 : TOTAL_PAGES
 
   return (
     <main className="px-4 sm:px-6 md:px-12 lg:px-20 py-8">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold capitalize">
+      {/* TITLE */}
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 capitalize">
         {category} News
       </h1>
 
-      </div>
+      {/* HERO */}
+      <HeroSlider articles={heroArticles} />
 
+      {/* GRID */}
+      <section className="mt-16">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {remainingArticles.map((article, i) => (
+            <a
+              key={i}
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <div
+                className="cursor-pointer overflow-hidden rounded-lg bg-white
+                           shadow-md transition-all duration-300
+                           hover:scale-[1.08] hover:shadow-lg"
+              >
+                {article.urlToImage && (
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={article.urlToImage}
+                      alt={article.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
 
-      <HeroSlider articles={articles.slice(0, 5)} />
+                <div className="p-4 h-[160px] flex flex-col">
+                  <h3 className="font-semibold text-base leading-snug line-clamp-2">
+                    {article.title}
+                  </h3>
 
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                    {article.description}
+                  </p>
 
-      <div className="grid gap-10 mt-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ">
-        {remainingArticles.map((article, index) => (
-        <a
-          key={index}
-          href={article.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block"
-        >
-          <div
-            className="cursor-pointer overflow-hidden rounded-lg bg-white
-                      shadow-md transition-all duration-300
-                      hover:scale-[1.08] hover:shadow-lg"
-          >
-            {/* IMAGE */}
-            {article.urlToImage && (
-              <div className="relative w-full h-48">
-                <Image
-                  src={article.urlToImage}
-                  alt={article.title}
-                  fill
-                  className="object-cover"
-                />
+                  <div className="mt-auto text-xs text-gray-400">
+                    {article.source?.name}
+                  </div>
+                </div>
               </div>
-            )}
+            </a>
+          ))}
+        </div>
+      </section>
 
-            {/* TEXT */}
-            <div className="p-4 h-[160px] flex flex-col">
-              <h3 className="font-semibold text-base line-clamp-2">
-                {article.title}
-              </h3>
-
-              <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                {article.description}
-              </p>
-
-              <span className="mt-auto text-xs text-gray-400">
-                {article.source?.name}
-              </span>
-            </div>
-          </div>
-        </a>
-
-
-          
-        ))}
-      </div>
-
-
-
-      <div className="flex justify-center gap-2 mt-12">
+      {/* PAGINATION */}
+      <div className="flex justify-center gap-2 mt-16">
         <a
           href={`/${category}?page=${prevPage}`}
-          className={`px-3 py-1 border rounded ${
+          className={`px-3 py-1 rounded border ${
             currentPage === 1
               ? "pointer-events-none opacity-40"
               : "hover:bg-gray-100"
@@ -152,7 +108,7 @@ export default async function CategoryPage({
             <a
               key={pageNumber}
               href={`/${category}?page=${pageNumber}`}
-              className={`px-3 py-1 border rounded ${
+              className={`px-3 py-1 rounded border ${
                 currentPage === pageNumber
                   ? "bg-black text-white"
                   : "hover:bg-gray-100"
@@ -165,7 +121,7 @@ export default async function CategoryPage({
 
         <a
           href={`/${category}?page=${nextPage}`}
-          className={`px-3 py-1 border rounded ${
+          className={`px-3 py-1 rounded border ${
             currentPage === TOTAL_PAGES
               ? "pointer-events-none opacity-40"
               : "hover:bg-gray-100"
