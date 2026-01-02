@@ -1,5 +1,6 @@
 import Image from "next/image"
 import HeroSlider from "../components/HeroSlider"
+import { getNewsByCategory } from "../lib/news"
 
 type Article = {
   title: string
@@ -18,19 +19,21 @@ async function getNews(
   category: string,
   page: number
 ): Promise<Article[]> {
-  const apiKey = process.env.NEWS_API_KEY
+  //const apiKey = process.env.NEWS_API_KEY
 
-  const res = await fetch(
-    `https://newsapi.org/v2/top-headlines?category=${category}&country=us&pageSize=${PAGE_SIZE}&page=${page}&apiKey=${apiKey}`,
-    { cache: "no-store" }
-  )
+  // const res = await fetch(
+  //   `https://newsapi.org/v2/top-headlines?category=${category}&country=us&pageSize=${PAGE_SIZE}&page=${page}&apiKey=${apiKey}`,
+  //   { cache: "no-store" }
+  // )
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch news")
-  }
+  // if (!res.ok) {
+  //   throw new Error("Failed to fetch news")
+  // }
 
-  const data = await res.json()
-  return data.articles
+  // const data = await res.json()
+  //return data.articles
+  const articles = await getNewsByCategory(category)
+  return articles
 }
 
 type CategoryPageProps = {
