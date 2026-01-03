@@ -1,5 +1,3 @@
-export const runtime = "nodejs"
-
 import { NextResponse } from "next/server"
 
 export async function GET(req: Request) {
@@ -32,18 +30,29 @@ export async function GET(req: Request) {
   url.searchParams.set("pageSize", pageSize)
   url.searchParams.set("apiKey", apiKey)
 
-  const res = await fetch(url.toString(), {  next: { revalidate: 60 }, })
-  const data = await res.json()
+  try {
+    const res = await fetch(url.toString(), {
+      // NewsAPI prefers no caching in dev
+      cache: "no-store",
+    })
 
-  if (!res.ok || data.status !== "ok") {
+    const data = await res.json()
+
+    if (!res.ok || data.status !== "ok") {
+      return NextResponse.json(
+        { error: data.message || "News API error" },
+        { status: res.status || 500 }
+      )
+    }
+
+    return NextResponse.json({
+      articles: data.articles,
+      totalResults: data.totalResults,
+    })
+  } catch (error) {
     return NextResponse.json(
-      { error: data.message || "News API error" },
+      { error: "Failed to fetch news" },
       { status: 500 }
     )
   }
-
-  return NextResponse.json({
-    articles: data.articles,
-    totalResults: data.totalResults,
-  })
 }
