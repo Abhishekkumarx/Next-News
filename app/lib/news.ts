@@ -1,4 +1,12 @@
-import { Article } from "./types"
+export type Article = {
+  title: string
+  description: string
+  urlToImage?: string | null
+  source?: {
+    name?: string
+  }
+  url?: string
+}
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
