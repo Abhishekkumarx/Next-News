@@ -8,25 +8,37 @@ export type Article = {
   url?: string
 }
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+const API_KEY = process.env.NEWS_API_KEY
 
 export async function getNewsByCategory(
   category: string,
   page = 1,
   pageSize = 12
 ): Promise<Article[]> {
+  if (!API_KEY) {
+    console.error("NEWS_API_KEY is missing")
+    return []
+  }
+
+  const url = new URL("https://newsapi.org/v2/top-headlines")
+  url.searchParams.set("category", category)
+  url.searchParams.set("country", "us")
+  url.searchParams.set("page", page.toString())
+  url.searchParams.set("pageSize", pageSize.toString())
+  url.searchParams.set("apiKey", API_KEY)
+
   try {
-    const res = await fetch(
-      `${BASE_URL}/api/news?category=${category}&page=${page}&pageSize=${pageSize}`
-    )
+    const res = await fetch(url.toString(), {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    })
 
     if (!res.ok) {
       console.error(
         `News fetch failed for ${category}:`,
-        res.status
+        res.status,
+        await res.text()
       )
-      return [] 
+      return []
     }
 
     const data = await res.json()
