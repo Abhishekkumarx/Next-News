@@ -17,7 +17,7 @@ export async function getNewsByCategory(
     // Construct absolute URL for fetch
     const baseUrl = process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000'
+      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const url = `${baseUrl}/api/news?category=${category}&page=${page}&pageSize=${pageSize}`
 
     console.log(`[getNewsByCategory] Fetching: ${category}, page: ${page}`)
