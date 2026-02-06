@@ -8,43 +8,47 @@ export type Article = {
   url?: string
 }
 
-const API_KEY = process.env.NEWS_API_KEY
-
 export async function getNewsByCategory(
   category: string,
   page = 1,
   pageSize = 12
 ): Promise<Article[]> {
-  if (!API_KEY) {
-    console.error("NEWS_API_KEY is missing")
-    return []
-  }
-
-  const url = new URL("https://newsapi.org/v2/top-headlines")
-  url.searchParams.set("category", category)
-  url.searchParams.set("country", "us")
-  url.searchParams.set("page", page.toString())
-  url.searchParams.set("pageSize", pageSize.toString())
-  url.searchParams.set("apiKey", API_KEY)
-
   try {
-    const res = await fetch(url.toString(), {
+    // Construct absolute URL for fetch
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000'
+    const url = `${baseUrl}/api/news?category=${category}&page=${page}&pageSize=${pageSize}`
+
+    console.log(`[getNewsByCategory] Fetching: ${category}, page: ${page}`)
+
+    const res = await fetch(url, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     })
 
     if (!res.ok) {
+      const errorText = await res.text()
       console.error(
-        `News fetch failed for ${category}:`,
+        `[getNewsByCategory] Fetch failed for ${category}:`,
         res.status,
-        await res.text()
+        errorText
       )
       return []
     }
 
     const data = await res.json()
-    return data.articles ?? []
+
+    if (data.error) {
+      console.error(`[getNewsByCategory] API error for ${category}:`, data.error)
+      return []
+    }
+
+    const articles = data.articles ?? []
+    console.log(`[getNewsByCategory] Success for ${category}: ${articles.length} articles`)
+
+    return articles
   } catch (error) {
-    console.error("News fetch error:", error)
+    console.error(`[getNewsByCategory] Exception for ${category}:`, error)
     return []
   }
 }
