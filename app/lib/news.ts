@@ -15,9 +15,23 @@ export async function getNewsByCategory(
 ): Promise<Article[]> {
   try {
     // Construct absolute URL for fetch
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    // Check for different deployment environments
+    let baseUrl = 'http://localhost:3000' // Default for local development
+
+    if (process.env.VERCEL_URL) {
+      // Vercel deployment
+      baseUrl = `https://${process.env.VERCEL_URL}`
+    } else if (process.env.AWS_APP_ID || process.env.AWS_BRANCH) {
+      // AWS Amplify deployment - use the public URL
+      baseUrl = process.env.NEXT_PUBLIC_BASE_URL || ''
+      if (!baseUrl) {
+        console.error('[getNewsByCategory] AWS Amplify detected but NEXT_PUBLIC_BASE_URL not set!')
+      }
+    } else if (process.env.NEXT_PUBLIC_BASE_URL) {
+      // Custom base URL provided
+      baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+    }
+
     const url = `${baseUrl}/api/news?category=${category}&page=${page}&pageSize=${pageSize}`
 
     console.log(`[getNewsByCategory] Fetching: ${category}, page: ${page}`)
